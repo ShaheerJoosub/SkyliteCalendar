@@ -11,9 +11,20 @@ namespace SkyliteCalendar
 
             builder.Services.AddControllersWithViews();
 
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
-                    ?? "Data Source=skylite.db"));
+            var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+            if (!string.IsNullOrEmpty(databaseUrl))
+            {
+                var uri = new Uri(databaseUrl);
+                var userInfo = uri.UserInfo.Split(':');
+                var npgsqlConn = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+                builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseNpgsql(npgsqlConn));
+            }
+            else
+            {
+                builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseSqlite("Data Source=skylite.db"));
+            }
 
             var app = builder.Build();
 
