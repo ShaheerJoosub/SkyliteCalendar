@@ -1,0 +1,527 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skylite Display Board</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fb;
+            color: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── TOP BAR ── */
+        .top-bar {
+            background: #fff;
+            border-bottom: 1px solid #e8eaf0;
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .brand { font-size: 22px; font-weight: 600; color: #185FA5; letter-spacing: -0.3px; }
+        .brand span { color: #1a1a2e; }
+        .clock-wrap { text-align: right; }
+        .clock-time { font-size: 32px; font-weight: 600; color: #1a1a2e; letter-spacing: 1px; line-height: 1; }
+        .clock-date { font-size: 13px; color: #6b7280; margin-top: 3px; }
+
+        /* ── TOOLBAR ── */
+        .toolbar {
+            background: #fff;
+            border-bottom: 1px solid #e8eaf0;
+            padding: 10px 28px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+        .dept-pills { display: flex; flex-wrap: wrap; gap: 7px; flex: 1; }
+        .pill {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 13px;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            transition: opacity .15s;
+            user-select: none;
+        }
+        .pill.off { opacity: 0.3; }
+        .nav-btns { display: flex; gap: 6px; align-items: center; }
+        .nav-btns button {
+            background: none;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 5px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            color: #374151;
+        }
+        .nav-btns button:hover { background: #f3f4f6; }
+        .week-label { font-size: 14px; font-weight: 600; color: #1a1a2e; min-width: 150px; text-align: center; }
+        .view-toggle { display: flex; gap: 4px; }
+        .view-btn {
+            background: none;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            padding: 4px 13px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        .view-btn.active { background: #185FA5; color: #fff; border-color: #185FA5; }
+
+        /* ── CALENDAR ── */
+        .cal-outer { flex: 1; padding: 16px 28px 20px; overflow: auto; }
+        .cal-grid {
+            background: #fff;
+            border: 1px solid #e8eaf0;
+            border-radius: 12px;
+            overflow: hidden;
+            min-width: 600px;
+        }
+        .day-headers {
+            display: grid;
+            border-bottom: 1px solid #e8eaf0;
+        }
+        .time-gutter { width: 58px; }
+        .day-hdr {
+            padding: 10px 6px;
+            text-align: center;
+            border-right: 1px solid #e8eaf0;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .day-hdr:last-child { border-right: none; }
+        .day-hdr .dn { font-size: 20px; font-weight: 600; color: #1a1a2e; display: block; margin-top: 2px; }
+        .day-hdr.today .dn {
+            background: #185FA5;
+            color: #fff;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 2px auto 0;
+        }
+        .cal-body { display: grid; }
+        .hour-row-time {
+            font-size: 11px;
+            color: #9ca3af;
+            text-align: right;
+            padding: 3px 8px 0 0;
+            border-right: 1px solid #e8eaf0;
+            border-bottom: 1px solid #f3f4f6;
+            min-height: 56px;
+        }
+        .hour-cell {
+            border-right: 1px solid #e8eaf0;
+            border-bottom: 1px solid #f3f4f6;
+            min-height: 56px;
+            position: relative;
+        }
+        .hour-cell:last-child { border-right: none; }
+        .m-block {
+            position: absolute;
+            left: 2px; right: 2px;
+            border-radius: 6px;
+            padding: 5px 8px;
+            cursor: pointer;
+            overflow: hidden;
+            z-index: 2;
+            transition: filter .12s;
+        }
+        .m-block:hover { filter: brightness(.92); }
+        .m-block .mt { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .m-block .ms { font-size: 11px; opacity: .85; white-space: nowrap; }
+
+        /* ── MODAL ── */
+        .modal-bg {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.35);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-bg.open { display: flex; }
+        .modal-card {
+            background: #fff;
+            border-radius: 14px;
+            width: 440px;
+            max-width: 92vw;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 28px;
+            position: relative;
+        }
+        .modal-bar { height: 5px; border-radius: 4px; margin-bottom: 18px; }
+        .modal-title { font-size: 20px; font-weight: 600; margin-bottom: 5px; }
+        .modal-time { font-size: 13px; color: #6b7280; margin-bottom: 18px; }
+        .modal-section { margin-bottom: 16px; }
+        .modal-label { font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+        .modal-val { font-size: 14px; color: #1a1a2e; line-height: 1.6; }
+        .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .chip { font-size: 12px; padding: 4px 12px; border-radius: 20px; background: #f3f4f6; color: #374151; }
+        .close-btn { position: absolute; top: 14px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #9ca3af; line-height: 1; }
+        .empty-day { padding: 32px 20px; text-align: center; color: #9ca3af; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="brand">&#9728; Skylite <span>Calendar</span></div>
+    <div class="clock-wrap">
+        <div class="clock-time" id="clk"></div>
+        <div class="clock-date" id="clk-date"></div>
+    </div>
+</div>
+
+<div class="toolbar">
+    <div class="dept-pills" id="dept-pills"></div>
+    <div class="nav-btns">
+        <button id="prev-btn">&#8592;</button>
+        <span class="week-label" id="week-label"></span>
+        <button id="next-btn">&#8594;</button>
+    </div>
+    <div class="view-toggle">
+        <button class="view-btn active" id="btn-week">Week</button>
+        <button class="view-btn" id="btn-day">Day</button>
+    </div>
+</div>
+
+<div class="cal-outer">
+    <div class="cal-grid" id="cal-grid">
+        <div class="day-headers" id="day-headers"></div>
+        <div class="cal-body" id="cal-body"></div>
+    </div>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+    <div class="modal-card">
+        <button class="close-btn" id="modal-close">&#x2715;</button>
+        <div class="modal-bar" id="m-bar"></div>
+        <div class="modal-title" id="m-title"></div>
+        <div class="modal-time" id="m-time"></div>
+        <div class="modal-section">
+            <div class="modal-label">Department</div>
+            <div class="modal-val" id="m-dept"></div>
+        </div>
+        <div class="modal-section">
+            <div class="modal-label">Agenda</div>
+            <div class="modal-val" id="m-desc"></div>
+        </div>
+        <div class="modal-section">
+            <div class="modal-label">Organised By</div>
+            <div class="modal-val" id="m-by"></div>
+        </div>
+        <div class="modal-section" id="m-att-wrap">
+            <div class="modal-label">Attendees</div>
+            <div class="chips" id="m-att"></div>
+        </div>
+        <div class="modal-section" id="m-ext-wrap" style="display:none">
+            <div class="modal-label">External Guests</div>
+            <div class="modal-val" id="m-ext"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const HOURS = [7,8,9,10,11,12,13,14,15,16,17,18];
+const DAYS_LONG  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let meetings = [];
+let deptSet = {};        // name -> {color, active}
+let viewMode = 'week';
+let weekOffset = 0;
+let dayOffset = 0;
+
+function pad(n){ return n<10?'0'+n:n; }
+
+function fmt(h){
+    const hh = Math.floor(h);
+    const mm = Math.round((h-hh)*60);
+    return pad(hh)+':'+pad(mm);
+}
+
+// ── Clock ──────────────────────────────────
+function updateClock(){
+    const now = new Date();
+    document.getElementById('clk').textContent = pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+    document.getElementById('clk-date').textContent = DAYS_LONG[now.getDay()]+', '+now.getDate()+' '+MONTHS[now.getMonth()]+' '+now.getFullYear();
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── Fetch meetings from API ─────────────────
+async function fetchMeetings(){
+    let url;
+    if(viewMode === 'week'){
+        const ws = getWeekStart();
+        const iso = ws.toISOString().split('T')[0];
+        url = `/Meeting/GetWeekMeetingsJson?weekStart=${iso}`;
+    } else {
+        const ds = getDayStart();
+        const iso = ds.toISOString().split('T')[0];
+        url = `/Meeting/GetMeetingsJson?date=${iso}`;
+    }
+    try {
+        const res = await fetch(url);
+        meetings = await res.json();
+        buildDeptSet();
+        renderPills();
+        buildCal();
+    } catch(e){
+        console.error('Failed to fetch meetings', e);
+    }
+}
+
+function buildDeptSet(){
+    meetings.forEach(m => {
+        if(m.department && !deptSet[m.department]){
+            deptSet[m.department] = { color: m.departmentColor, active: true };
+        }
+    });
+}
+
+// ── Department filter pills ─────────────────
+function renderPills(){
+    const el = document.getElementById('dept-pills');
+    el.innerHTML = '';
+    Object.entries(deptSet).forEach(([name, info]) => {
+        const p = document.createElement('div');
+        p.className = 'pill' + (info.active ? '' : ' off');
+        p.textContent = name;
+        p.style.background = info.color + '22';
+        p.style.color = info.color;
+        p.style.borderColor = info.color;
+        p.onclick = () => {
+            const active = Object.values(deptSet).filter(d=>d.active).length;
+            if(info.active && active === 1) return; // keep at least one
+            info.active = !info.active;
+            renderPills();
+            buildCal();
+        };
+        el.appendChild(p);
+    });
+}
+
+// ── Date helpers ────────────────────────────
+function getWeekStart(){
+    const now = new Date();
+    const d = new Date(now);
+    d.setDate(now.getDate() - now.getDay() + weekOffset*7);
+    d.setHours(0,0,0,0);
+    return d;
+}
+function getDayStart(){
+    const now = new Date();
+    const d = new Date(now);
+    d.setDate(now.getDate() + dayOffset);
+    d.setHours(0,0,0,0);
+    return d;
+}
+
+// ── Build calendar ──────────────────────────
+function buildCal(){
+    if(viewMode === 'week') buildWeek();
+    else buildDay();
+}
+
+function buildWeek(){
+    const ws = getWeekStart();
+    const today = new Date(); today.setHours(0,0,0,0);
+    document.getElementById('week-label').textContent = MONTHS_SHORT[ws.getMonth()]+' '+ws.getFullYear();
+
+    // headers
+    const hdr = document.getElementById('day-headers');
+    hdr.style.gridTemplateColumns = '58px repeat(7,1fr)';
+    hdr.innerHTML = '<div class="time-gutter" style="border-bottom:none"></div>';
+    for(let i=0;i<7;i++){
+        const d = new Date(ws); d.setDate(ws.getDate()+i);
+        const isToday = d.getTime()===today.getTime();
+        const div = document.createElement('div');
+        div.className = 'day-hdr'+(isToday?' today':'');
+        div.innerHTML = `<span>${DAYS_SHORT[d.getDay()]}</span><span class="dn">${d.getDate()}</span>`;
+        hdr.appendChild(div);
+    }
+
+    // body
+    const body = document.getElementById('cal-body');
+    body.style.gridTemplateColumns = '58px repeat(7,1fr)';
+    body.innerHTML = '';
+
+    HOURS.forEach(h => {
+        // time gutter
+        const tg = document.createElement('div');
+        tg.className = 'hour-row-time';
+        tg.textContent = pad(h)+':00';
+        body.appendChild(tg);
+
+        for(let i=0;i<7;i++){
+            const cell = document.createElement('div');
+            cell.className = 'hour-cell';
+            const dayMeetings = meetings.filter(m =>
+                m.dayOfWeek === i &&
+                Math.floor(m.startHour) === h &&
+                (deptSet[m.department]?.active ?? true)
+            );
+            placeMeetings(cell, dayMeetings, h);
+            body.appendChild(cell);
+        }
+    });
+}
+
+function buildDay(){
+    const ds = getDayStart();
+    const today = new Date(); today.setHours(0,0,0,0);
+    const isToday = ds.getTime()===today.getTime();
+    document.getElementById('week-label').textContent = DAYS_LONG[ds.getDay()]+' '+ds.getDate()+' '+MONTHS_SHORT[ds.getMonth()];
+
+    const hdr = document.getElementById('day-headers');
+    hdr.style.gridTemplateColumns = '58px 1fr';
+    hdr.innerHTML = '<div class="time-gutter" style="border-bottom:none"></div>';
+    const dh = document.createElement('div');
+    dh.className = 'day-hdr'+(isToday?' today':'');
+    dh.innerHTML = `<span>${DAYS_SHORT[ds.getDay()]}</span><span class="dn">${ds.getDate()}</span>`;
+    hdr.appendChild(dh);
+
+    const body = document.getElementById('cal-body');
+    body.style.gridTemplateColumns = '58px 1fr';
+    body.innerHTML = '';
+
+    const dayMeetingsAll = meetings.filter(m =>
+        m.date === ds.toISOString().split('T')[0] &&
+        (deptSet[m.department]?.active ?? true)
+    );
+
+    if(dayMeetingsAll.length === 0 && meetings.length === 0){
+        // show empty state spanning full width
+        const empty = document.createElement('div');
+        empty.style.gridColumn = '1 / -1';
+        empty.className = 'empty-day';
+        empty.textContent = 'No meetings scheduled for this day.';
+        body.appendChild(empty);
+        return;
+    }
+
+    HOURS.forEach(h => {
+        const tg = document.createElement('div');
+        tg.className = 'hour-row-time';
+        tg.textContent = pad(h)+':00';
+        body.appendChild(tg);
+
+        const cell = document.createElement('div');
+        cell.className = 'hour-cell';
+        const slot = dayMeetingsAll.filter(m => Math.floor(m.startHour) === h);
+        placeMeetings(cell, slot, h);
+        body.appendChild(cell);
+    });
+}
+
+function placeMeetings(cell, list, baseHour){
+    const count = list.length;
+    list.forEach((m, idx) => {
+        const info = deptSet[m.department] || { color: '#185FA5' };
+        const topPx = (m.startHour - baseHour) * 56;
+        const heightPx = (m.endHour - m.startHour) * 56 - 2;
+        const w = count > 1 ? (96/count)+'%' : 'calc(100% - 4px)';
+        const left = count > 1 ? (idx*(96/count))+'%' : '2px';
+
+        const block = document.createElement('div');
+        block.className = 'm-block';
+        block.style.cssText = `top:${topPx}px;height:${Math.max(heightPx,22)}px;background:${info.color}18;border-left:3px solid ${info.color};left:${left};width:${w}`;
+        block.innerHTML = `<div class="mt" style="color:${info.color}">${m.title}</div><div class="ms" style="color:${info.color}">${m.startTime}–${m.endTime}</div>`;
+        block.onclick = () => showDetail(m);
+        cell.appendChild(block);
+    });
+}
+
+// ── Detail modal ────────────────────────────
+function showDetail(m){
+    const info = deptSet[m.department] || { color: '#185FA5' };
+    document.getElementById('m-bar').style.background = info.color;
+    document.getElementById('m-title').textContent = m.title;
+    document.getElementById('m-time').textContent = (m.date || '') + '  ' + m.startTime + ' – ' + m.endTime;
+    document.getElementById('m-dept').textContent = m.department || '—';
+    document.getElementById('m-dept').style.color = info.color;
+    document.getElementById('m-desc').textContent = m.description || '—';
+    document.getElementById('m-by').textContent = m.createdBy || '—';
+
+    const attWrap = document.getElementById('m-att-wrap');
+    const attEl = document.getElementById('m-att');
+    attEl.innerHTML = '';
+    if(m.attendees && m.attendees.length){
+        attWrap.style.display = 'block';
+        m.attendees.forEach(name => {
+            const chip = document.createElement('div');
+            chip.className = 'chip';
+            chip.textContent = name;
+            attEl.appendChild(chip);
+        });
+    } else {
+        attWrap.style.display = 'none';
+    }
+
+    const extWrap = document.getElementById('m-ext-wrap');
+    if(m.externalAttendees){
+        extWrap.style.display = 'block';
+        document.getElementById('m-ext').textContent = m.externalAttendees;
+    } else {
+        extWrap.style.display = 'none';
+    }
+
+    document.getElementById('modal-bg').classList.add('open');
+}
+
+document.getElementById('modal-bg').onclick = e => {
+    if(e.target === document.getElementById('modal-bg'))
+        document.getElementById('modal-bg').classList.remove('open');
+};
+document.getElementById('modal-close').onclick = () =>
+    document.getElementById('modal-bg').classList.remove('open');
+
+// ── Navigation ──────────────────────────────
+document.getElementById('prev-btn').onclick = () => {
+    if(viewMode==='week') weekOffset--; else dayOffset--;
+    fetchMeetings();
+};
+document.getElementById('next-btn').onclick = () => {
+    if(viewMode==='week') weekOffset++; else dayOffset++;
+    fetchMeetings();
+};
+document.getElementById('btn-week').onclick = () => {
+    viewMode='week';
+    document.getElementById('btn-week').classList.add('active');
+    document.getElementById('btn-day').classList.remove('active');
+    fetchMeetings();
+};
+document.getElementById('btn-day').onclick = () => {
+    viewMode='day';
+    document.getElementById('btn-day').classList.add('active');
+    document.getElementById('btn-week').classList.remove('active');
+    fetchMeetings();
+};
+
+// ── Auto-refresh every 60 seconds ──────────
+fetchMeetings();
+setInterval(fetchMeetings, 60000);
+</script>
+</body>
+</html>

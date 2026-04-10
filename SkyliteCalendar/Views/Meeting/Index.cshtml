@@ -1,0 +1,68 @@
+@model IEnumerable<Meeting>
+@{
+    ViewData["Title"] = "Meetings";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Meetings</h2>
+    <a asp-action="Create" class="btn btn-primary">+ Schedule Meeting</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No meetings scheduled yet.</div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Department</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Attendees</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@m.Title</td>
+                            <td>
+                                @if (m.Department != null)
+                                {
+                                    <span class="badge" style="background:@m.Department.ColorHex">@m.Department.Name</span>
+                                }
+                                else { <span class="text-muted small">—</span> }
+                            </td>
+                            <td>@m.StartTime.ToString("dd MMM yyyy")</td>
+                            <td class="text-muted">@m.StartTime.ToString("HH:mm") – @m.EndTime.ToString("HH:mm")</td>
+                            <td>
+                                @{
+                                    var count = m.Attendees?.Count ?? 0;
+                                    <span class="text-muted small">@count internal</span>
+                                    if (!string.IsNullOrEmpty(m.ExternalAttendees))
+                                    {
+                                        <span class="text-muted small"> + external</span>
+                                    }
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@m.Id" class="btn btn-sm btn-outline-info">Details</a>
+                                <a asp-action="Edit" asp-route-id="@m.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                <form asp-action="Delete" asp-route-id="@m.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this meeting?')">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

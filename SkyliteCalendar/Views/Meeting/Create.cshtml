@@ -1,0 +1,95 @@
+@model Meeting
+@{
+    ViewData["Title"] = "Schedule Meeting";
+    var users = ViewBag.Users as List<SkyliteCalendar.Models.User> ?? new List<SkyliteCalendar.Models.User>();
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <h2 class="mb-4">Schedule a Meeting</h2>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold">Meeting Title</label>
+                        <input asp-for="Title" class="form-control" placeholder="e.g. Q2 Campaign Planning" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-semibold">Description / Agenda</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="What is this meeting about?"></textarea>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label asp-for="StartTime" class="form-label fw-semibold">Start</label>
+                            <input asp-for="StartTime" type="datetime-local" class="form-control" />
+                            <span asp-validation-for="StartTime" class="text-danger small"></span>
+                        </div>
+                        <div class="col">
+                            <label asp-for="EndTime" class="form-label fw-semibold">End</label>
+                            <input asp-for="EndTime" type="datetime-local" class="form-control" />
+                            <span asp-validation-for="EndTime" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DepartmentId" class="form-label fw-semibold">Department</label>
+                        <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select">
+                            <option value="">-- Select Department --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Organised By</label>
+                        <select name="createdByUserId" class="form-select">
+                            <option value="">-- Select organiser --</option>
+                            @foreach (var u in users)
+                            {
+                                <option value="@u.Id">@u.FullName @(u.Department != null ? $"({u.Department.Name})" : "")</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Internal Attendees</label>
+                        <div class="border rounded p-3" style="max-height:200px;overflow-y:auto">
+                            @if (!users.Any())
+                            {
+                                <p class="text-muted small mb-0">No staff members yet. <a asp-controller="User" asp-action="Create">Add staff first.</a></p>
+                            }
+                            @foreach (var u in users)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="selectedUsers" value="@u.Id" id="user_@u.Id" />
+                                    <label class="form-check-label" for="user_@u.Id">
+                                        @u.FullName
+                                        @if (u.Department != null)
+                                        {
+                                            <span class="badge ms-1" style="background:@u.Department.ColorHex;font-size:10px">@u.Department.Name</span>
+                                        }
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="ExternalAttendees" class="form-label fw-semibold">External Attendees</label>
+                        <input asp-for="ExternalAttendees" class="form-control" placeholder="e.g. John Smith (ABC Corp), Jane Doe (XYZ Ltd)" />
+                        <small class="text-muted">Comma-separated list of external guests.</small>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Schedule Meeting</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,87 @@
+@model Meeting
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">&larr; Back</a>
+            <h2 class="mb-0">Meeting Details</h2>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            @if (Model.Department != null)
+            {
+                <div style="height:6px;background:@Model.Department.ColorHex;border-radius:12px 12px 0 0"></div>
+            }
+            <div class="card-body p-4">
+                <h3 class="fw-semibold mb-1">@Model.Title</h3>
+                @if (Model.Department != null)
+                {
+                    <span class="badge mb-3" style="background:@Model.Department.ColorHex">@Model.Department.Name</span>
+                }
+
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <p class="text-muted small mb-1">Date</p>
+                        <p class="fw-semibold mb-0">@Model.StartTime.ToString("dddd, dd MMMM yyyy")</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <p class="text-muted small mb-1">Time</p>
+                        <p class="fw-semibold mb-0">@Model.StartTime.ToString("HH:mm") – @Model.EndTime.ToString("HH:mm")</p>
+                    </div>
+                    @if (Model.CreatedBy != null)
+                    {
+                        <div class="col-sm-6">
+                            <p class="text-muted small mb-1">Organised By</p>
+                            <p class="fw-semibold mb-0">@Model.CreatedBy.FullName</p>
+                        </div>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mb-4">
+                        <p class="text-muted small mb-1">Agenda / Description</p>
+                        <p class="mb-0">@Model.Description</p>
+                    </div>
+                }
+
+                @if (Model.Attendees != null && Model.Attendees.Any())
+                {
+                    <div class="mb-4">
+                        <p class="text-muted small mb-2">Internal Attendees (@Model.Attendees.Count)</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var a in Model.Attendees)
+                            {
+                                if (a.User != null)
+                                {
+                                    <span class="badge py-2 px-3" style="background:@(a.User.Department?.ColorHex ?? "#6c757d");font-size:13px">
+                                        @a.User.FullName
+                                    </span>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.ExternalAttendees))
+                {
+                    <div class="mb-4">
+                        <p class="text-muted small mb-2">External Attendees</p>
+                        <p class="mb-0">@Model.ExternalAttendees</p>
+                    </div>
+                }
+
+                <div class="d-flex gap-2 pt-3 border-top">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Edit Meeting</a>
+                    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Delete this meeting?')">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="row align-items-center mb-5">
+    <div class="col-md-8">
+        <h1 class="display-5 fw-semibold">Welcome to Skylite Calendar</h1>
+        <p class="lead text-muted">Manage your office meetings and project them on the wall display for everyone to see.</p>
+        <div class="d-flex gap-3 mt-4">
+            <a asp-controller="Meeting" asp-action="Create" class="btn btn-primary btn-lg">
+                + Schedule a Meeting
+            </a>
+            <a asp-controller="Display" asp-action="Index" target="_blank" class="btn btn-outline-primary btn-lg">
+                &#9728; Open Display Board
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="fs-1 mb-2">&#128197;</div>
+                <h5 class="card-title">Meetings</h5>
+                <p class="card-text text-muted">Schedule, edit, and manage all office meetings. Assign departments and attendees.</p>
+                <a asp-controller="Meeting" asp-action="Index" class="btn btn-sm btn-outline-primary">View Meetings</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="fs-1 mb-2">&#128100;</div>
+                <h5 class="card-title">Staff</h5>
+                <p class="card-text text-muted">Add and manage staff members. Assign them to departments so they appear in meeting invites.</p>
+                <a asp-controller="User" asp-action="Index" class="btn btn-sm btn-outline-primary">Manage Staff</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="fs-1 mb-2">&#127970;</div>
+                <h5 class="card-title">Departments</h5>
+                <p class="card-text text-muted">Create departments and assign a colour. Each department gets its own colour on the display board.</p>
+                <a asp-controller="Department" asp-action="Index" class="btn btn-sm btn-outline-primary">Manage Departments</a>
+            </div>
+        </div>
+    </div>
+</div>
