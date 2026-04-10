@@ -1,6 +1,6 @@
 {
-  "build": { "builder": "NIXPACKS" },
+  "build": { "builder": "DOCKERFILE" },
   "deploy": {
-    "startCommand": "cd SkyliteCalendar && dotnet run --urls http://0.0.0.0:$PORT"
+    "startCommand": "dotnet SkyliteCalendar.dll"
   }
 }
